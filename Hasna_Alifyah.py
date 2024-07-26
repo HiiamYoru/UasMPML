@@ -1,55 +1,15 @@
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.impute import SimpleImputer
-import joblib
-
-# Load and preprocess data
-df = pd.read_csv("onlinefoods.csv")
-
-# Handle missing values
-imputer = SimpleImputer(strategy='mean')
-df['Age'] = imputer.fit_transform(df[['Age']])
-
-# Encode categorical variables
-categorical_features = ['Gender', 'Marital Status', 'Occupation', 'Monthly Income', 'Educational Qualifications', 'Feedback']
-numerical_features = ['Age', 'Family size', 'latitude', 'longitude']
-
-preprocessor = ColumnTransformer(
-    transformers=[
-        ('num', StandardScaler(), numerical_features),
-        ('cat', OneHotEncoder(), categorical_features)])
-
-# Split the dataset
-X = df.drop('Output', axis=1)
-y = df['Output']
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# Apply preprocessing
-X_train = preprocessor.fit_transform(X_train)
-X_test = preprocessor.transform(X_test)
-
-# Train model
-model = RandomForestClassifier()
-model.fit(X_train, y_train)
-
-# Save model and preprocessor
-joblib.dump(model, 'random_forest_model.pkl')
-joblib.dump(preprocessor, 'preprocessor.pkl')
-
+import pickle
 import streamlit as st
-import pandas as pd
 import numpy as np
-import joblib
 
-# Load model and preprocessor
-model = joblib.load('random_forest_model.pkl')
-preprocessor = joblib.load('preprocessor.pkl')
+# Load the model
+try:
+    online_model = pickle.load(open('OnlineFoods_new.sav', 'rb'))
+except Exception as e:
+    st.error(f"Error loading model: {e}")
 
-# Input form for user
-st.title('Prediksi Output untuk Online Foods')
+# Title of the web app
+st.title('Prediksi Output Online Food')
 
 # Input features
 gender = st.selectbox('Gender', ['Male', 'Female'])
@@ -63,35 +23,27 @@ family_size = st.number_input('Family Size', min_value=0)
 latitude = st.number_input('Latitude')
 longitude = st.number_input('Longitude')
 
-# Create DataFrame from inputs
-user_input = pd.DataFrame({
-    'Gender': [gender],
-    'Marital Status': [marital_status],
-    'Occupation': [occupation],
-    'Monthly Income': [monthly_income],
-    'Educational Qualifications': [educational_qualifications],
-    'Feedback': [feedback],
-    'Age': [age],
-    'Family size': [family_size],
-    'latitude': [latitude],
-    'longitude': [longitude]
-})
 
-# Button to make prediction
-if st.button('Predict'):
+prediksi_Onlinefood = ''
+
+# Create a button for prediction
+if st.button('Prediksi'):
     try:
-        # Apply preprocessing
-        user_input_processed = preprocessor.transform(user_input)
+        # Convert input to numeric values
+        inputs = np.array([[float(Marital_Status), float(Occupation), float(Monthly_Income), float(Educational_Qualifications),
+                            float(Feedback), float(Age), float(Family_size), float(latitude), float(longitude)]])
         
         # Make prediction
-        prediction = model.predict(user_input_processed)
-        prediction_proba = model.predict_proba(user_input_processed)
+        online_prediksi = online_model.predict(inputs)
         
         # Display prediction
-        st.write('### Hasil Prediksi')
-        st.write(f'Output Prediksi: {prediction[0]}')
-        st.write(f'Probabilitas Prediksi: {prediction_proba[0]}')
-    except ValueError as e:
-        st.error(f"Error during preprocessing: {e}")
+        if online_prediksi[0] == 1:
+            prediksi_online = 'Yes'
+            st.success(prediksi_online)
+        else:
+            prediksi_online = '<span style="color:red">No</span>'
+            st.markdown(prediksi_online, unsafe_allow_html=True)
+    except ValueError:
+        st.error("Pastikan semua input diisi dengan angka yang valid.")
     except Exception as e:
         st.error(f"Terjadi kesalahan: {e}")
