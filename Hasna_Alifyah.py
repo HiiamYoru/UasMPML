@@ -7,7 +7,7 @@ from sklearn.impute import SimpleImputer
 import joblib
 
 # Load and preprocess data
-df = pd.read_csv("C:\\Users\\ASUS\\Documents\\Semester 4\\MPML_UAS\\FinalExam\\FinalExam\\onlinefoods.csv")
+df = pd.read_csv("onlinefoods.csv")
 
 # Handle missing values
 imputer = SimpleImputer(strategy='mean')
