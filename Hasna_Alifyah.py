@@ -38,21 +38,27 @@ user_input = pd.DataFrame({
     'longitude': [longitude]
 })
 
-# Button to make prediction
-if st.button('Predict'):
+prediksi_Onlinefood = ''
+
+# Create a button for prediction
+if st.button('Prediksi'):
     try:
-        # Apply preprocessing
-        user_input_processed = preprocessor.transform(user_input)
+        # Convert input to numeric values
+        inputs = np.array([[float(Marital_Status), float(Occupation), float(Monthly_Income), float(Educational_Qualifications),
+                            float(Feedback), float(Age), float(Family_size), float(latitude), float(longitude)]])
         
         # Make prediction
-        prediction = model.predict(user_input_processed)
-        prediction_proba = model.predict_proba(user_input_processed)
+        online_prediksi = online_model.predict(inputs)
         
         # Display prediction
-        st.write('### Hasil Prediksi')
-        st.write(f'Output Prediksi: {prediction[0]}')
-        st.write(f'Probabilitas Prediksi: {prediction_proba[0]}')
-    except ValueError as e:
-        st.error(f"Error during preprocessing: {e}")
+        if online_prediksi[0] == 1:
+            prediksi_online = 'Yes'
+            st.success(prediksi_online)
+        else:
+            prediksi_online = '<span style="color:red">No</span>'
+            st.markdown(prediksi_online, unsafe_allow_html=True)
+    except ValueError:
+        st.error("Pastikan semua input diisi dengan angka yang valid.")
     except Exception as e:
-        st.error(f"Terjadi kesalahan: {e}")
+        st.error(f"Terjadi kesalahan: {e}")
+
